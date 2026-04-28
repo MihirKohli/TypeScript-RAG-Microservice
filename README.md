@@ -48,14 +48,16 @@ for the current 20 faqs (all under 600 chars) no splitting actually happens each
 
 ## Sample Requests
 
-**ingest**
+**1. ingest**
 ```bash
 curl -X POST http://localhost:4500/ingest \
   -H "Content-Type: application/json" \
   -d @data/beem_faqs.json
 ```
 
-**health check**
+---
+
+**2. health check**
 ```bash
 curl http://localhost:4500/health
 ```
@@ -67,7 +69,9 @@ curl http://localhost:4500/health
 }
 ```
 
-**query without category**
+---
+
+**3. query — how do i send money**
 ```bash
 curl -X POST http://localhost:4500/query \
   -H "Content-Type: application/json" \
@@ -81,7 +85,41 @@ curl -X POST http://localhost:4500/query \
 }
 ```
 
-**query with category filter**
+---
+
+**4. query — direct deposit changes**
+```bash
+curl -X POST http://localhost:4500/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "employers process direct deposit changes", "top_k": 3}'
+```
+```json
+{
+  "answer": "Most employers process direct deposit changes within 1-2 pay cycles.",
+  "sources": ["FAQ-008", "FAQ-005", "FAQ-001"],
+  "latency_ms": 2803
+}
+```
+
+---
+
+**5. query — account flagged**
+```bash
+curl -X POST http://localhost:4500/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "your account has been flagged", "top_k": 3}'
+```
+```json
+{
+  "answer": "Your account may be flagged for unusual activity, which can lead to declines in your Everdraft advances. If you believe this is an error, you should contact Beem support through the app for assistance.",
+  "sources": ["FAQ-005", "FAQ-016", "FAQ-015"],
+  "latency_ms": 2100
+}
+```
+
+---
+
+**6. query with category filter — everdraft fees**
 ```bash
 curl -X POST http://localhost:4500/query \
   -H "Content-Type: application/json" \
@@ -92,5 +130,21 @@ curl -X POST http://localhost:4500/query \
   "answer": "Everdraft has no mandatory fees and charges zero interest. Beem offers an optional tip when you take an advance, which is entirely voluntary and does not affect your eligibility or limit. There are no late fees if your paycheck is delayed, and Beem never charges overdraft fees on Everdraft repayment.",
   "sources": ["FAQ-003", "FAQ-004", "FAQ-002"],
   "latency_ms": 2200
+}
+```
+
+---
+
+**7. query with category filter — unauthorized transactions**
+```bash
+curl -X POST http://localhost:4500/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "If you identify unauthorized transactions", "top_k": 3, "category": "account_management"}'
+```
+```json
+{
+  "answer": "If you identify unauthorized transactions, you should dispute them in the app within 60 days. Beem's Zero Liability policy means you are not responsible for unauthorized charges if reported promptly.",
+  "sources": ["FAQ-015", "FAQ-016"],
+  "latency_ms": 2660
 }
 ```
