@@ -1,10 +1,12 @@
 import type { VectorChunk, SearchResult } from "../types.js";
 
-// Cosine similarity between two vectors.
-// text-embedding-3-small outputs are already L2-normalized,
-// so dot product === cosine similarity. We still use the full
-// formula for correctness with any embedding model.
-
+/**
+ * calculates cosine similarity between two vectors
+ * using full formula so it works with any embedding model, not just openai
+ * @param a - first embedding vector
+ * @param b - second embedding vector
+ * @returns similarity score between 0 and 1
+ */
 function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0;
   let normA = 0;
@@ -18,31 +20,37 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return denom === 0 ? 0 : dot / denom;
 }
 
-// Dead-simple in-memory vector store.
-// Stores chunks keyed by ID for idempotent upserts,
-// searches via brute-force cosine similarity.
- 
+// in-memory store using a Map keyed by faq id
+// brute force cosine search, no external db needed
+
 class VectorStore {
   private chunks: Map<string, VectorChunk> = new Map();
 
-  // Upsert a chunk — same ID overwrites, guaranteeing idempotency. 
+  /**
+   * overwrite if same id so calling ingest twice doesn't duplicate entries
+   * @param chunk - VectorChunk with id, category, text, and embedding
+   */
   upsert(chunk: VectorChunk): void {
     this.chunks.set(chunk.id, chunk);
   }
 
-  //  Number of stored chunks
+  // total chunks currently in store
   get size(): number {
     return this.chunks.size;
   }
 
-  //  Whether the store has been populated.
+  // true if at least one chunk has been ingested
   get isPopulated(): boolean {
     return this.chunks.size > 0;
   }
 
-  //  Search for the top-k most similar chunks to a query embedding.
-  //  Optionally filter by category before ranking.
-   
+  /**
+   * find top k chunks most similar to query, category filter is optional
+   * @param queryEmbedding - embedding vector of the user question
+   * @param topK - number of results to return
+   * @param category - optional category to filter chunks before ranking
+   * @returns array of SearchResult sorted by score descending
+   */
   search(
     queryEmbedding: number[],
     topK: number,
@@ -62,5 +70,5 @@ class VectorStore {
   }
 }
 
-//  Singleton store instance — lives for the process lifetime. 
+// single instance shared across the whole app
 export const store = new VectorStore();

@@ -25,9 +25,12 @@ function buildContextBlock(results: SearchResult[]): string {
     .join("\n\n---\n\n");
 }
 
-// Generate a grounded answer using retrieved chunks as context.
-// Returns the LLM's text response.
- 
+/**
+ * takes retrieved faq chunks as context and asks gpt-4o-mini to answer the question
+ * @param question - user question string
+ * @param results - top-k search results from the vector store
+ * @returns answer string from the llm
+ */
 export async function generateAnswer(
   question: string,
   results: SearchResult[]
@@ -51,9 +54,11 @@ export async function generateAnswer(
 }
 
 
-// Embed a single text string using text-embedding-3-small.
-// Returns a normalized float32 vector (1536 dims).
-
+/**
+ * embed a single text into a vector using text-embedding-3-small
+ * @param text - text string to embed
+ * @returns array of 1536 floats (embedding vector)
+ */
 export async function embed(text: string): Promise<number[]> {
   const res = await client.embeddings.create({
     model: "text-embedding-3-small",
@@ -62,6 +67,11 @@ export async function embed(text: string): Promise<number[]> {
   return res.data[0].embedding;
 }
 
+/**
+ * embed multiple texts in one api call to save round trips
+ * @param texts - array of text strings to embed
+ * @returns array of embedding vectors in the same order as input
+ */
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
 
@@ -70,7 +80,7 @@ export async function embedBatch(texts: string[]): Promise<number[][]> {
     input: texts,
   });
 
-  // OpenAI returns results sorted by index, but let's be safe
+  // sort by index to make sure order matches the input array
   return res.data
     .sort((a, b) => a.index - b.index)
     .map((d) => d.embedding);

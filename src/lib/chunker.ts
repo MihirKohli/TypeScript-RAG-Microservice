@@ -14,12 +14,22 @@ import { store } from "./vectorStore.js";
 // will create a alot of duplicates and decrease semantic accuracy
 
 
+/**
+ * combines question and answer into a single chunk for embedding
+ * @param faq - single FaqEntry
+ * @returns formatted string "Q: ...\nA: ..."
+ */
 function chunkFaq(faq: FaqEntry): string {
   return `Q: ${faq.question}\nA: ${faq.answer}`;
 }
 
-const BATCH_SIZE = 100; // OpenAI max is 2048 inputs; 100 keeps requests well within token limits
+const BATCH_SIZE = 100; // openai allows max 2048 per request, 100 is a safe limit
 
+/**
+ * chunks and embeds all faqs then upserts them into the vector store
+ * @param faqs - array of FaqEntry from the request body
+ * @returns number of documents ingested
+ */
 export async function ingestFaqs(faqs: FaqEntry[]): Promise<number> {
   const texts = faqs.map(chunkFaq);
 
