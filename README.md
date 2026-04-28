@@ -1,16 +1,46 @@
-Setup Guide 
-rename .env.example to .env and add your open ai key
+## Setup Guide
+rename `.env.example` to `.env` and add your openai key, then run:
 
-How to set up and run the service (including which LLM provider you used and why)?
+```bash
+npm install
+npm run dev
+```
 
-why i have used openai because it's sota embedding model
-widely accepted for benchmark and accuracy.
+---
 
-Your chunking strategy and reasoning ?
+## LLM Provider
 
-for chunking i have used 1024 chunk size with 20 overlap becayse following chunker 
-strategy has been tested and there's research paper on it, also over faq content is short
-so chunking it smaller will reduce accuracy of our vector database
+i used openai for both embedding and generation
 
+- embedding: `text-embedding-3-small` — sota on retrieval benchmarks, cheap, 1536 dims
+- generation: `gpt-4o-mini` — fast, cheap, good instruction following for grounded QA
 
-Any known limitations or things you would improve with more time
+---
+
+## Chunking Strategy
+
+**do you embed the question alone, the answer alone, or both together?**
+
+both together as `Q: {question}\nA: {answer}`
+
+embedding only the answer would miss question-to-question similarity users phrase queries like questions, not like answers. embedding only the question throws away the actual content. combining both gives the vector a dual signal it matches queries that sound like the original question AND queries that contain terms from the answer
+
+**how do you handle the category field?**
+
+category is stored as metadata only, not embedded into the chunk text
+
+if i added it to the text it would be a repeated label across many chunks and would dilute the semantic signal. instead it's used as a pre-retrieval filter you can pass `"category": "everdraft"` in the query body and the store filters candidates before cosine similarity runs
+
+**what is your overlap strategy?**
+
+chunk size is 1024 chars with 20 char overlap using a recursive character splitter. the splitter tries to break on paragraph breaks first, then newlines, then sentences, then words, then characters so it never cuts mid-sentence unless it has no choice. the 20 char overlap carries context from the end of one chunk into the start of the next so the boundary doesn't lose meaning
+
+for the current 20 faqs (all under 600 chars) no splitting actually happens each faq stays as one chunk. the chunker is there so the system handles larger documents without breaking
+
+---
+
+## Known Limitations
+
+- vector store is in-memory so data is lost on restart, would need to re-ingest every time server restarts
+- brute force cosine search works fine for 20 faqs but won't scale, would swap to hnsw index for large datasets
+- no streaming on /query response, llm answer is returned all at once, would add streaming for better 
