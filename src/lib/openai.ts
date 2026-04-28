@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import "dotenv/config";
-import type { SearchResult } from "./types.js";
+import type { SearchResult } from "../types.js";
 
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
@@ -50,7 +50,6 @@ export async function generateAnswer(
 
   return res.choices[0]?.message?.content ?? "I was unable to generate an answer.";
 }
-
 
 /**
  * Embed a single text string using text-embedding-3-small.

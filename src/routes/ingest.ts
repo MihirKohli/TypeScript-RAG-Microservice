@@ -1,27 +1,14 @@
 import type { FastifyPluginAsync } from "fastify";
-import { readFile } from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import type { FaqEntry } from "../types.js";
 import { store } from "../lib/vectorStore.js";
-import { ingestFaqs } from "../lib/ingest.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { ingestFaqs } from "../lib/chunker.js";
 
 const ingestRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.post("/ingest", async (_request, reply) => {
-    const faqPath = path.join(__dirname, "..", "..", "data", "beem_faqs.json");
-
-    let faqs: FaqEntry[];
-    try {
-      const raw = await readFile(faqPath, "utf-8");
-      faqs = JSON.parse(raw) as FaqEntry[];
-    } catch {
-      return reply.status(500).send({ error: "Failed to read FAQ data file." });
-    }
+  fastify.post<{ Body: FaqEntry[] }>("/ingest", async (request, reply) => {
+    const faqs = request.body;
 
     if (!Array.isArray(faqs) || faqs.length === 0) {
-      return reply.status(400).send({ error: "FAQ data is empty or malformed." });
+      return reply.status(400).send({ error: "Request body must be a non-empty array of FAQ entries." });
     }
 
     const count = await ingestFaqs(faqs);

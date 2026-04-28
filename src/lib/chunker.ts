@@ -1,5 +1,5 @@
 import type { FaqEntry } from "../types.js";
-import { embedBatch } from "../llmCall.js";
+import { embedBatch } from "./openai.js";
 import { store } from "./vectorStore.js";
 
 /**

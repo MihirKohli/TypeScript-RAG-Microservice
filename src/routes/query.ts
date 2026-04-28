@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { QueryRequest, QueryResponse } from "../types.js";
 import { store } from "../lib/vectorStore.js";
-import { embed, generateAnswer } from "../llmCall.js";
+import { embed, generateAnswer } from "../lib/openai.js";
 
 const queryRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post<{ Body: QueryRequest }>("/query", async (request, reply) => {
