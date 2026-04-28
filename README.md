@@ -45,6 +45,8 @@ for the current 20 faqs (all under 600 chars) no splitting actually happens each
 - vector store is in-memory so data is lost on restart, would need to re-ingest every time server restarts
 - brute force cosine search works fine for 20 faqs but won't scale, would swap to hnsw index for large datasets
 - no streaming on /query response, llm answer is returned all at once, would add streaming for better 
+- add authentication and search query cache mechanism to reduce cost of frequently user searches.
+
 
 
 ## Sample Requests
