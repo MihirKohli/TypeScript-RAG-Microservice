@@ -7,7 +7,7 @@ import healthRoutes from "./routes/health.js";
 
 const app = Fastify({ logger: true });
 
-// ─── Request logging hook ─────────────────────────────────────────────────────
+// user request logger hook
 app.addHook("onResponse", (request, reply, done) => {
   request.log.info(
     {
@@ -21,12 +21,14 @@ app.addHook("onResponse", (request, reply, done) => {
   done();
 });
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
+// register route in index file
 app.register(ingestRoutes);
 app.register(queryRoutes);
 app.register(healthRoutes);
 
-// ─── Start ────────────────────────────────────────────────────────────────────
+// if port number not found then default it with 4500 
+// convert it to integer this is a error handling 
+// generally from env port number are loaded in string form
 const PORT = parseInt(process.env.PORT ?? "4500", 10);
 
 async function start() {

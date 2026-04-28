@@ -25,10 +25,9 @@ function buildContextBlock(results: SearchResult[]): string {
     .join("\n\n---\n\n");
 }
 
-/**
- * Generate a grounded answer using retrieved chunks as context.
- * Returns the LLM's text response.
- */
+// Generate a grounded answer using retrieved chunks as context.
+// Returns the LLM's text response.
+ 
 export async function generateAnswer(
   question: string,
   results: SearchResult[]
@@ -51,10 +50,10 @@ export async function generateAnswer(
   return res.choices[0]?.message?.content ?? "I was unable to generate an answer.";
 }
 
-/**
- * Embed a single text string using text-embedding-3-small.
- * Returns a normalized float32 vector (1536 dims).
- */
+
+// Embed a single text string using text-embedding-3-small.
+// Returns a normalized float32 vector (1536 dims).
+
 export async function embed(text: string): Promise<number[]> {
   const res = await client.embeddings.create({
     model: "text-embedding-3-small",
@@ -63,10 +62,6 @@ export async function embed(text: string): Promise<number[]> {
   return res.data[0].embedding;
 }
 
-/**
- * Embed multiple texts in a single API call (batched).
- * Returns embeddings in the same order as input.
- */
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
 

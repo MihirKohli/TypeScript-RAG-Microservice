@@ -18,8 +18,10 @@ const queryRoutes: FastifyPluginAsync = async (fastify) => {
         .status(503)
         .send({ error: "Vector store is empty. Call POST /ingest first." });
     }
-
+    // user queries are converted to open ai embedding
     const queryEmbedding = await embed(question);
+    // top k results with highest scores are fetched 
+    // category filter is also added can be optional
     const results = store.search(queryEmbedding, top_k, category);
 
     if (results.length === 0) {
@@ -30,7 +32,7 @@ const queryRoutes: FastifyPluginAsync = async (fastify) => {
         latency_ms,
       } satisfies QueryResponse;
     }
-
+    // pass user query and response from vector data base to open ai
     const answer = await generateAnswer(question, results);
     const latency_ms = Math.round(performance.now() - start);
     const sources = [...new Set(results.map((r) => r.chunk.id))];

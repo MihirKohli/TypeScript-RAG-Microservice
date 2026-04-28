@@ -2,43 +2,42 @@ import type { FaqEntry } from "../types.js";
 import { embedBatch } from "./openai.js";
 import { store } from "./vectorStore.js";
 
-/**
- * Chunking strategy:
- *
- * Each FAQ is embedded as a single chunk: "Q: {question}\nA: {answer}"
- *
- * Rationale:
- * - FAQ answers are short (50-120 words each). Splitting them would
- *   destroy semantic coherence with no retrieval benefit.
- * - Prefixing with the question improves retrieval: user queries are
- *   phrased as questions, so embedding the original question alongside
- *   the answer gives the vector a dual semantic signal — it matches
- *   both question-to-question similarity AND question-to-answer relevance.
- * - Category is stored as metadata for optional pre-retrieval filtering,
- *   NOT embedded into the text. Mixing category labels into the embedding
- *   would dilute the semantic signal for short texts like these.
- */
+
+// Chunking strategy
+// I have embedded as single chunk of "Q: {question}\nA: {answer}"
+// chunking them together will create better relevancy and better vectors
+// Because faq answers and questions are short
+// i haven't split them because chunking them further will destroy semantic
+// coherence and reduces accuracy 
+// category is stored as metadata optional for filter
+// not stored as embedding becauses it a repeated value 
+// will create a alot of duplicates and decrease semantic accuracy
+
+
 function chunkFaq(faq: FaqEntry): string {
   return `Q: ${faq.question}\nA: ${faq.answer}`;
 }
 
-/**
- * Ingest the full FAQ dataset into the vector store.
- * Idempotent: upserting by FAQ ID means repeated calls overwrite, never duplicate.
- */
+const BATCH_SIZE = 100; // OpenAI max is 2048 inputs; 100 keeps requests well within token limits
+
 export async function ingestFaqs(faqs: FaqEntry[]): Promise<number> {
   const texts = faqs.map(chunkFaq);
 
-  // Single batched embedding call — 20 FAQs in one round-trip
-  const embeddings = await embedBatch(texts);
+  // add batching process if dataset is large then divide data into batches
+  // and ingest in part otherwise it will throw an error over large dataset
+  for (let i = 0; i < faqs.length; i += BATCH_SIZE) {
+    const batchFaqs = faqs.slice(i, i + BATCH_SIZE);
+    const batchTexts = texts.slice(i, i + BATCH_SIZE);
+    const embeddings = await embedBatch(batchTexts);
 
-  for (let i = 0; i < faqs.length; i++) {
-    store.upsert({
-      id: faqs[i].id,
-      category: faqs[i].category,
-      text: texts[i],
-      embedding: embeddings[i],
-    });
+    for (let j = 0; j < batchFaqs.length; j++) {
+      store.upsert({
+        id: batchFaqs[j].id,
+        category: batchFaqs[j].category,
+        text: batchTexts[j],
+        embedding: embeddings[j],
+      });
+    }
   }
 
   return faqs.length;
