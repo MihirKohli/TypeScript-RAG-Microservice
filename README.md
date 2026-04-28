@@ -44,3 +44,53 @@ for the current 20 faqs (all under 600 chars) no splitting actually happens each
 - vector store is in-memory so data is lost on restart, would need to re-ingest every time server restarts
 - brute force cosine search works fine for 20 faqs but won't scale, would swap to hnsw index for large datasets
 - no streaming on /query response, llm answer is returned all at once, would add streaming for better 
+
+
+## Sample Requests
+
+**ingest**
+```bash
+curl -X POST http://localhost:4500/ingest \
+  -H "Content-Type: application/json" \
+  -d @data/beem_faqs.json
+```
+
+**health check**
+```bash
+curl http://localhost:4500/health
+```
+```json
+{
+  "status": "ok",
+  "documents_in_store": 20,
+  "uptime_seconds": 692
+}
+```
+
+**query without category**
+```bash
+curl -X POST http://localhost:4500/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "How do I send money?", "top_k": 3}'
+```
+```json
+{
+  "answer": "To send money using Beem, you can use the peer-to-peer transfer feature within the Beem app.",
+  "sources": ["FAQ-008", "FAQ-009", "FAQ-004"],
+  "latency_ms": 3790
+}
+```
+
+**query with category filter**
+```bash
+curl -X POST http://localhost:4500/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are the fees?", "top_k": 3, "category": "everdraft"}'
+```
+```json
+{
+  "answer": "Everdraft has no mandatory fees and charges zero interest. Beem offers an optional tip when you take an advance, which is entirely voluntary and does not affect your eligibility or limit. There are no late fees if your paycheck is delayed, and Beem never charges overdraft fees on Everdraft repayment.",
+  "sources": ["FAQ-003", "FAQ-004", "FAQ-002"],
+  "latency_ms": 2200
+}
+```
