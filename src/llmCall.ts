@@ -1,7 +1,11 @@
 import OpenAI from "openai";
+import "dotenv/config";
 import type { SearchResult } from "./types.js";
 
-const client = new OpenAI();
+const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
+
+const client = new OpenAI({ apiKey });
 
 const SYSTEM_PROMPT = `You are a helpful customer support assistant for Beem, an AI-first fintech platform.
 
