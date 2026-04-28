@@ -12,7 +12,8 @@ npm run dev
 
 i used openai for both embedding and generation
 
-- embedding: `text-embedding-3-small` — sota on retrieval benchmarks, cheap, 1536 dims
+- embedding: `text-embedding-3-small` — sota on retrieval benchmarks, cheap, 1536 dims. most public rag benchmarks are evaluated on this model so it made sense to use it. also my current laptop doesn't have enough resources to run a local embedding model
+
 - generation: `gpt-4o-mini` — fast, cheap, good instruction following for grounded QA
 
 ---
@@ -103,17 +104,17 @@ curl -X POST http://localhost:4500/query \
 
 ---
 
-**5. query — account flagged**
+**5. query — everdraft advance declined**
 ```bash
 curl -X POST http://localhost:4500/query \
   -H "Content-Type: application/json" \
-  -d '{"question": "your account has been flagged", "top_k": 3}'
+  -d '{"question": "Why was my Everdraft advance declined?", "top_k": 3}'
 ```
 ```json
 {
-  "answer": "Your account may be flagged for unusual activity, which can lead to declines in your Everdraft advances. If you believe this is an error, you should contact Beem support through the app for assistance.",
-  "sources": ["FAQ-005", "FAQ-016", "FAQ-015"],
-  "latency_ms": 2100
+  "answer": "Your Everdraft advance may have been declined for several reasons: your direct deposit has not been active with Beem for a full pay cycle yet; your last paycheck was below Beem's minimum threshold; you have an outstanding unpaid advance from a previous cycle; your account has been flagged for unusual activity; or your employer's payroll schedule is irregular or variable. If you believe the decline is in error, contact Beem support through the app.",
+  "sources": ["FAQ-005", "FAQ-006", "FAQ-002"],
+  "latency_ms": 3827
 }
 ```
 
